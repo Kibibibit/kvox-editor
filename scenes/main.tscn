@@ -1,6 +1,6 @@
-[gd_scene load_steps=9 format=3 uid="uid://cn72nbfl283w2"]
+[gd_scene load_steps=7 format=3 uid="uid://cn72nbfl283w2"]
 
-[ext_resource type="ArrayMesh" uid="uid://behl36nlrne87" path="res://out2.kvox" id="1_iba3a"]
+[ext_resource type="ArrayMesh" uid="uid://dlkjpvqayfllu" path="res://test.kvox" id="1_bjt6v"]
 [ext_resource type="Script" path="res://scripts/camera_mount.gd" id="1_ptimn"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_pdyor"]
@@ -28,21 +28,6 @@ glow_map_strength = 0.59
 [sub_resource type="PlaneMesh" id="PlaneMesh_wtiku"]
 size = Vector2(10, 10)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pn6dk"]
-albedo_color = Color(1, 0.74902, 0.917647, 1)
-metallic = 1.0
-roughness = 0.29
-emission_enabled = true
-emission = Color(0, 1, 1, 1)
-emission_energy_multiplier = 3.33
-rim = 0.48
-rim_tint = 0.0
-anisotropy_enabled = true
-anisotropy = 0.13
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_on36c"]
-material = SubResource("StandardMaterial3D_pn6dk")
-
 [node name="Root" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -54,11 +39,7 @@ mesh = SubResource("PlaneMesh_wtiku")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="MeshInstance3D"]
 transform = Transform3D(0.481, 0, 0, 0, 0.481, 0, 0, 0, 0.481, -2.75218, 1.00158, -0.627276)
-mesh = ExtResource("1_iba3a")
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="MeshInstance3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.31139, 0.747072, 0)
-mesh = SubResource("CapsuleMesh_on36c")
+mesh = ExtResource("1_bjt6v")
 
 [node name="CameraMount" type="Node3D" parent="."]
 transform = Transform3D(0.707107, -0.326506, 0.627211, 0, 0.887011, 0.461749, -0.707107, -0.326506, 0.627211, 0, 0, 0)
@@ -68,3 +49,6 @@ zoom = 25.0
 
 [node name="Camera3D" type="Camera3D" parent="CameraMount"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.191736, -0.315907, 0.929215, 0.0617453, 0.941023, 0.332662, -0.979502, 0.121158, -0.160922, -4.96503, 4.6212, -4.22826)
