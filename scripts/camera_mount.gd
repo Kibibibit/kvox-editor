@@ -3,7 +3,7 @@ extends Node3D
 @export
 var rotate_speed:float = 0.005
 @export
-var pan_speed:float = 0.01
+var pan_speed:float = 0.1
 @export
 var zoom_speed:float = 2.0
 @export
@@ -39,7 +39,7 @@ func _process(delta):
 			zoom = lerp(zoom, inital_zoom, delta*return_to_origin_speed)
 
 func _zoom(direction: int):
-	zoom += direction*(zoom/max_zoom)*zoom_speed
+	zoom += direction*(_zoom_factor()*2)*zoom_speed
 	if (zoom < 0):
 		zoom = 0
 	if (zoom > 60):
@@ -59,14 +59,14 @@ func _unhandled_input(event):
 		var diff: Vector2 = event.position - _click_pos
 		if (event.button_mask == MOUSE_BUTTON_MASK_MIDDLE):
 			if (event.shift_pressed):
-				position.y += diff.y*pan_speed
-				
-				var pan: Vector2 = Vector2(cos(rotation.y),-sin(rotation.y))*diff.x
-				position -= Vector3(pan.x,0,pan.y)*pan_speed
-				
+				var pan: Vector3 = Vector3(-diff.x, diff.y, 0)*pan_speed*_zoom_factor()
+				translate_object_local(pan)
 			else:
 				rotation += Vector3(-diff.y, -diff.x, 0)*rotate_speed
 		_click_pos = event.position
 	if (event is InputEventKey):
 		if (event.pressed && event.keycode == KEY_O):
 			_returning_to_origin = true
+
+func _zoom_factor() -> float:
+	return (zoom/max_zoom)

@@ -1,7 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://cn72nbfl283w2"]
+[gd_scene load_steps=9 format=3 uid="uid://cn72nbfl283w2"]
 
-[ext_resource type="ArrayMesh" uid="uid://ce0ghtuff1dtw" path="res://test.kvox" id="1_ny5hn"]
 [ext_resource type="Script" path="res://scripts/camera_mount.gd" id="1_ptimn"]
+[ext_resource type="Script" path="res://scripts/model.gd" id="2_h5awf"]
+[ext_resource type="Script" path="res://scripts/ui.gd" id="3_gv1nq"]
+[ext_resource type="Script" path="res://scripts/grid_mesh.gd" id="4_5l37n"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_pdyor"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -25,8 +27,7 @@ glow_hdr_threshold = 0.98
 glow_hdr_scale = 2.36
 glow_map_strength = 0.59
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_wtiku"]
-size = Vector2(10, 10)
+[sub_resource type="BoxMesh" id="BoxMesh_2lrja"]
 
 [node name="Root" type="Node3D"]
 
@@ -34,12 +35,7 @@ size = Vector2(10, 10)
 environment = SubResource("Environment_i83sj")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.03067, 0, 0)
-mesh = SubResource("PlaneMesh_wtiku")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="MeshInstance3D"]
-transform = Transform3D(-0.00371055, 0, -0.480986, 0, 0.481, 0, 0.480986, 0, -0.00371055, -0.479742, 1.00158, -0.627276)
-mesh = ExtResource("1_ny5hn")
+mesh = SubResource("BoxMesh_2lrja")
 
 [node name="CameraMount" type="Node3D" parent="."]
 transform = Transform3D(0.707107, -0.326506, 0.627211, 0, 0.887011, 0.461749, -0.707107, -0.326506, 0.627211, 0, 0, 0)
@@ -51,4 +47,35 @@ zoom = 25.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.191736, -0.315907, 0.929215, 0.0617453, 0.941023, 0.332662, -0.979502, 0.121158, -0.160922, -4.96503, 4.6212, -4.22826)
+transform = Transform3D(-0.191736, -0.315907, 0.929215, 0.0617453, 0.941023, 0.332662, -0.979502, 0.121158, -0.160922, 16.8715, 4.6212, -4.22826)
+
+[node name="Model" type="Node3D" parent="."]
+script = ExtResource("2_h5awf")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("3_gv1nq")
+
+[node name="Label" type="Label" parent="UI"]
+layout_mode = 0
+offset_left = 489.0
+offset_top = 16.0
+offset_right = 529.0
+offset_bottom = 39.0
+
+[node name="HSlider" type="HSlider" parent="UI"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 14.0
+offset_right = 361.0
+offset_bottom = 30.0
+value = 5.0
+
+[node name="Grid" type="MeshInstance3D" parent="."]
+script = ExtResource("4_5l37n")
