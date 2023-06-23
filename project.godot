@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 LineDrawer="*res://scripts/line_drawer.gd"
-Grid="*res://scripts/grid.gd"
 
 [editor_plugins]
 

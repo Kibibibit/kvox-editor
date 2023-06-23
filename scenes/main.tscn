@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cn72nbfl283w2"]
+[gd_scene load_steps=10 format=3 uid="uid://cn72nbfl283w2"]
 
 [ext_resource type="Script" path="res://scripts/camera_mount.gd" id="1_ptimn"]
 [ext_resource type="Script" path="res://scripts/model.gd" id="2_h5awf"]
@@ -28,6 +28,12 @@ glow_hdr_scale = 2.36
 glow_map_strength = 0.59
 
 [sub_resource type="BoxMesh" id="BoxMesh_2lrja"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_upu80"]
+script = ExtResource("4_5l37n")
+size = 5
+height = 0
+color = Color(1, 0, 0, 1)
 
 [node name="Root" type="Node3D"]
 
@@ -78,4 +84,4 @@ offset_bottom = 30.0
 value = 5.0
 
 [node name="Grid" type="MeshInstance3D" parent="."]
-script = ExtResource("4_5l37n")
+mesh = SubResource("ArrayMesh_upu80")
