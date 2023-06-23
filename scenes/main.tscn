@@ -1,9 +1,16 @@
-[gd_scene load_steps=10 format=3 uid="uid://cn72nbfl283w2"]
+[gd_scene load_steps=12 format=3 uid="uid://cn72nbfl283w2"]
 
+[ext_resource type="ArrayMesh" uid="uid://ce0ghtuff1dtw" path="res://test.kvox" id="1_5dqxu"]
 [ext_resource type="Script" path="res://scripts/camera_mount.gd" id="1_ptimn"]
 [ext_resource type="Script" path="res://scripts/model.gd" id="2_h5awf"]
 [ext_resource type="Script" path="res://scripts/ui.gd" id="3_gv1nq"]
-[ext_resource type="Script" path="res://scripts/grid_mesh.gd" id="4_5l37n"]
+[ext_resource type="Script" path="res://scripts/grid.gd" id="5_cicja"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1rgif"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5emde"]
+transparency = 1
+albedo_color = Color(0.188235, 0.188235, 0.188235, 0.690196)
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_pdyor"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -27,24 +34,24 @@ glow_hdr_threshold = 0.98
 glow_hdr_scale = 2.36
 glow_map_strength = 0.59
 
-[sub_resource type="BoxMesh" id="BoxMesh_2lrja"]
-
-[sub_resource type="ArrayMesh" id="ArrayMesh_upu80"]
-script = ExtResource("4_5l37n")
-size = 5
-height = 0
-color = Color(1, 0, 0, 1)
+[sub_resource type="BoxShape3D" id="BoxShape3D_3uilp"]
+size = Vector3(1, 0.001, 1)
 
 [node name="Root" type="Node3D"]
+
+[node name="Model" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_5dqxu")
+script = ExtResource("2_h5awf")
+
+[node name="Cube" type="MeshInstance3D" parent="Model"]
+mesh = SubResource("BoxMesh_1rgif")
+surface_material_override/0 = SubResource("StandardMaterial3D_5emde")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_i83sj")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("BoxMesh_2lrja")
-
 [node name="CameraMount" type="Node3D" parent="."]
-transform = Transform3D(0.707107, -0.326506, 0.627211, 0, 0.887011, 0.461749, -0.707107, -0.326506, 0.627211, 0, 0, 0)
+transform = Transform3D(0.707107, -0.326506, 0.627211, 0, 0.887011, 0.461749, -0.707107, -0.326506, 0.627211, 0.5, 0, 0.5)
 script = ExtResource("1_ptimn")
 inital_zoom = 25.0
 zoom = 25.0
@@ -52,11 +59,11 @@ zoom = 25.0
 [node name="Camera3D" type="Camera3D" parent="CameraMount"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 
+[node name="RayCast3D" type="RayCast3D" parent="CameraMount/Camera3D"]
+target_position = Vector3(0, 0, -30)
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.191736, -0.315907, 0.929215, 0.0617453, 0.941023, 0.332662, -0.979502, 0.121158, -0.160922, 16.8715, 4.6212, -4.22826)
-
-[node name="Model" type="Node3D" parent="."]
-script = ExtResource("2_h5awf")
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -84,4 +91,11 @@ offset_bottom = 30.0
 value = 5.0
 
 [node name="Grid" type="MeshInstance3D" parent="."]
-mesh = SubResource("ArrayMesh_upu80")
+script = ExtResource("5_cicja")
+size = 7
+color = Color(0.631373, 0.631373, 0.631373, 1)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Grid"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Grid/StaticBody3D"]
+shape = SubResource("BoxShape3D_3uilp")

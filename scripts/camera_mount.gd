@@ -1,4 +1,5 @@
 extends Node3D
+class_name CameraMount
 
 @export
 var rotate_speed:float = 0.005
@@ -18,6 +19,7 @@ var return_to_origin_speed:float = 50.0
 @onready var camera: Camera3D = $Camera3D
 @onready var _origin_pos = position
 @onready var _origin_rotation = rotation
+@onready var ray: RayCast3D = $Camera3D/RayCast3D
 
 var _click_pos: Vector2
 var _returning_to_origin: bool = false
@@ -37,6 +39,10 @@ func _process(delta):
 			position = position.lerp(_origin_pos, delta*return_to_origin_speed)
 			rotation = rotation.lerp(_origin_rotation, delta*return_to_origin_speed)
 			zoom = lerp(zoom, inital_zoom, delta*return_to_origin_speed)
+	var from = camera.project_ray_origin(get_viewport().get_mouse_position())
+	var to = from + camera.project_ray_normal(get_viewport().get_mouse_position())
+	ray.look_at_from_position(from,to)
+	
 
 func _zoom(direction: int):
 	zoom += direction*(_zoom_factor()*2)*zoom_speed
@@ -44,6 +50,7 @@ func _zoom(direction: int):
 		zoom = 0
 	if (zoom > 60):
 		zoom = 60
+	
 
 func _unhandled_input(event):
 	if (event is InputEventMouseButton):

@@ -1,18 +1,22 @@
-extends ArrayMesh
-class_name GridMesh
+extends MeshInstance3D
+class_name Grid
 
 @export var size:int = 5
 @export var height:int = 0
 @export var color: Color = Color.RED
-
 var material: StandardMaterial3D
 var remesh_queued = true;
 
-func _init():
+@onready
+var _collider: CollisionShape3D = $StaticBody3D/CollisionShape3D
+
+
+func _ready():
+	mesh = ArrayMesh.new()
 	material = StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	set_color(color)
+	material.albedo_color = color
 	remesh()
 
 func remesh():
@@ -25,21 +29,21 @@ func remesh():
 	var z_b = size+1
 	
 	for x in range(-size,size+2):
-		verts.append(_grid_v(x,height,z_a))
-		verts.append(_grid_v(x,height,z_b))
+		verts.append(Vector3(x,height,z_a))
+		verts.append(Vector3(x,height,z_b))
 	for z in range(-size, size+2):
-		verts.append(_grid_v(x_a,height,z))
-		verts.append(_grid_v(x_b,height,z))
-	if (get_surface_count() > 0):
-		clear_surfaces()
+		verts.append(Vector3(x_a,height,z))
+		verts.append(Vector3(x_b,height,z))
+	if (mesh.get_surface_count() > 0):
+		mesh.clear_surfaces()
 
 	var surface_array = []
 	surface_array.resize((Mesh.ARRAY_MAX))
 	surface_array[Mesh.ARRAY_VERTEX] = verts
-	add_surface_from_arrays(Mesh.PRIMITIVE_LINES, surface_array, )
-	surface_set_material(0,material)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, surface_array, )
+	mesh.surface_set_material(0,material)
 	remesh_queued = false
-
+	_collider.shape.size = Vector3(2*size,0.001,2*size)
 
 func set_size(s: int):
 	if (s != size):
@@ -55,5 +59,3 @@ func set_color(c: Color):
 	color = c
 	material.albedo_color = c
 
-func _grid_v(x:float, y:float, z:float) -> Vector3:
-	return Vector3(x-0.5, y-0.5, z-0.5)
