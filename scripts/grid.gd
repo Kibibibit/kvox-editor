@@ -43,7 +43,7 @@ func remesh():
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, surface_array, )
 	mesh.surface_set_material(0,material)
 	remesh_queued = false
-	_collider.shape.size = Vector3(2*size,0.001,2*size)
+	_collider.shape.size = Vector3(2*size+1,0.01,2*size+1)
 
 func set_size(s: int):
 	if (s != size):

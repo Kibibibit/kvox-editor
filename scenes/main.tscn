@@ -1,16 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://cn72nbfl283w2"]
+[gd_scene load_steps=13 format=3 uid="uid://cn72nbfl283w2"]
 
-[ext_resource type="ArrayMesh" uid="uid://ce0ghtuff1dtw" path="res://test.kvox" id="1_5dqxu"]
 [ext_resource type="Script" path="res://scripts/camera_mount.gd" id="1_ptimn"]
-[ext_resource type="Script" path="res://scripts/model.gd" id="2_h5awf"]
 [ext_resource type="Script" path="res://scripts/ui.gd" id="3_gv1nq"]
+[ext_resource type="Texture2D" uid="uid://cpc0nu1evvw8g" path="res://assets/pencil_tool.png" id="3_msqwq"]
+[ext_resource type="Texture2D" uid="uid://c1pwctafb6awu" path="res://assets/eraser_tool.png" id="4_40ah4"]
 [ext_resource type="Script" path="res://scripts/grid.gd" id="5_cicja"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_1rgif"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5emde"]
-transparency = 1
-albedo_color = Color(0.188235, 0.188235, 0.188235, 0.690196)
+[ext_resource type="Script" path="res://scripts/box_model.gd" id="6_36okn"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_pdyor"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -22,6 +17,7 @@ sky_material = SubResource("ProceduralSkyMaterial_pdyor")
 
 [sub_resource type="Environment" id="Environment_i83sj"]
 background_mode = 2
+background_color = Color(0.180392, 0.180392, 0.180392, 1)
 sky = SubResource("Sky_c0owg")
 glow_enabled = true
 glow_levels/3 = 5.05
@@ -35,17 +31,15 @@ glow_hdr_scale = 2.36
 glow_map_strength = 0.59
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3uilp"]
-size = Vector3(1, 0.001, 1)
+size = Vector3(1000, 0.001, 1000)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ud7jg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_txpyc"]
+transparency = 1
+albedo_color = Color(0.384314, 0.384314, 0.384314, 0.458824)
 
 [node name="Root" type="Node3D"]
-
-[node name="Model" type="MeshInstance3D" parent="."]
-mesh = ExtResource("1_5dqxu")
-script = ExtResource("2_h5awf")
-
-[node name="Cube" type="MeshInstance3D" parent="Model"]
-mesh = SubResource("BoxMesh_1rgif")
-surface_material_override/0 = SubResource("StandardMaterial3D_5emde")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_i83sj")
@@ -62,9 +56,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 [node name="RayCast3D" type="RayCast3D" parent="CameraMount/Camera3D"]
 target_position = Vector3(0, 0, -30)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.191736, -0.315907, 0.929215, 0.0617453, 0.941023, 0.332662, -0.979502, 0.121158, -0.160922, 16.8715, 4.6212, -4.22826)
-
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
@@ -75,27 +66,72 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("3_gv1nq")
 
-[node name="Label" type="Label" parent="UI"]
-layout_mode = 0
-offset_left = 489.0
-offset_top = 16.0
-offset_right = 529.0
-offset_bottom = 39.0
+[node name="MenuPanel" type="Panel" parent="UI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.05
+grow_horizontal = 2
 
-[node name="HSlider" type="HSlider" parent="UI"]
-layout_mode = 0
-offset_left = 15.0
-offset_top = 14.0
-offset_right = 361.0
-offset_bottom = 30.0
-value = 5.0
+[node name="MenuGrid" type="GridContainer" parent="UI/MenuPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+columns = 20
+
+[node name="FileMenu" type="MenuButton" parent="UI/MenuPanel/MenuGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "File"
+item_count = 1
+popup/item_0/text = "Save"
+popup/item_0/id = 0
+
+[node name="EditMenu" type="MenuButton" parent="UI/MenuPanel/MenuGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Edit"
+
+[node name="SidebarPanel" type="Panel" parent="UI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.05
+anchor_right = 0.05
+anchor_bottom = 1.0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ItemList" type="ItemList" parent="UI/SidebarPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+item_count = 2
+item_0/text = "Pencil"
+item_0/icon = ExtResource("3_msqwq")
+item_1/text = "Eraser"
+item_1/icon = ExtResource("4_40ah4")
 
 [node name="Grid" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0)
 script = ExtResource("5_cicja")
 size = 7
 color = Color(0.631373, 0.631373, 0.631373, 1)
 
 [node name="StaticBody3D" type="StaticBody3D" parent="Grid"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.1, 0.5)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Grid/StaticBody3D"]
 shape = SubResource("BoxShape3D_3uilp")
+
+[node name="BoxModel" type="Node3D" parent="."]
+script = ExtResource("6_36okn")
+
+[node name="Cube" type="MeshInstance3D" parent="BoxModel"]
+mesh = SubResource("BoxMesh_ud7jg")
+surface_material_override/0 = SubResource("StandardMaterial3D_txpyc")
