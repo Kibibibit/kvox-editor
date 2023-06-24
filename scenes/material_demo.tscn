@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://cao5vg8a1hwqd"]
+
+[ext_resource type="PackedScene" uid="uid://dsti6evfih6ky" path="res://shaders/world_environment.tscn" id="1_g32it"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0pq3l"]
+
+[node name="material_demo" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.892885, 0.450285, 0, -0.450285, 0.892885, 0, 0.793645, 1.51219)
+
+[node name="Example" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.906912, 0, -0.421321, 0, 1, 0, 0.421321, 0, 0.906912, 0, 0, 0)
+mesh = SubResource("BoxMesh_0pq3l")
+
+[node name="OmniLight3D2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.87311, 2.15704, 3.08149)
+light_energy = 2.927
+omni_range = 4096.0
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.13933, -4.4779, 2.01934)
+omni_range = 4096.0
+omni_attenuation = 0.615571
+
+[node name="WorldEnvironment" parent="." instance=ExtResource("1_g32it")]

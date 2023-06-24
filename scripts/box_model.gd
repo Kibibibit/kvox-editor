@@ -15,9 +15,17 @@ const _surrounding: Array[Vector3i] = [
 var _ray: RayCast3D = $"../CameraMount/Camera3D/RayCast3D"
 
 @onready
+var _camera: Camera3D = $"../CameraMount/Camera3D"
+
+@onready
 var _cube: MeshInstance3D = $Cube
 
-var material: int = 1
+@onready
+var _ui: UI = $"../UI"
+
+@onready
+var _tool_texture: Sprite2D = $"../Tool"
+
 
 var _size: Vector3i = Vector3i(0,0,0)
 
@@ -39,19 +47,38 @@ func _physics_process(_delta):
 			_ray_voxel = null
 		else:
 			_ray_voxel = collider
-			_cube.position = collider.position+Vector3(0.5,0.5,0.5)+_ray.get_collision_normal()
+			_cube.position = collider.position+Vector3(0.5,0.5,0.5)
+			
+			if (_ui.selected_tool == UI.Tools.PLACE):
+				_cube.position+=_ray.get_collision_normal()
 	else:
 		_cube.visible = false
+		_ray_voxel = null
+	_tool_texture.visible = _cube.visible
+	if (_tool_texture.visible):
+		_tool_texture.position = _camera.unproject_position(_cube.position)
 
 func _unhandled_input(event):
 	if (event is InputEventMouseButton):
+		if (_ui.editor != null):
+			return
 		if (event.pressed):
-			if (event.button_index == MOUSE_BUTTON_RIGHT):
-				if (_ray_voxel != null):
-					remove_voxel(_ray_voxel)
-
-			if (event.button_index == MOUSE_BUTTON_LEFT):
-				add_voxel(_cube.position-Vector3(0.5,0.5,0.5), material)
+			if (event.button_index == MOUSE_BUTTON_LEFT && _cube.visible):
+				match _ui.selected_tool:
+					UI.Tools.PLACE:
+						add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
+					UI.Tools.BREAK:
+						if (_ray_voxel != null):
+							remove_voxel(_ray_voxel)
+					UI.Tools.PENCIL:
+						if (_ray_voxel != null):
+							_ray_voxel.set_material(_ui.get_selected_material())
+					UI.Tools.ERASER:
+						if (_ray_voxel != null):
+							_ray_voxel.set_material(Voxel.no_material)
+					_:
+						return
+				
 
 func remove_voxel(voxel: Voxel):
 	if (voxel != null):

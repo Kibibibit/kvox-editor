@@ -1,0 +1,145 @@
+[gd_scene load_steps=4 format=3 uid="uid://eenw5ypa4gus"]
+
+[ext_resource type="Script" path="res://scripts/material_editor.gd" id="1_7a1e5"]
+[ext_resource type="PackedScene" uid="uid://cao5vg8a1hwqd" path="res://scenes/material_demo.tscn" id="2_dd3co"]
+
+[sub_resource type="World3D" id="World3D_kst4s"]
+
+[node name="material_editor" type="Control"]
+custom_minimum_size = Vector2(692, 456)
+layout_mode = 3
+anchor_right = 0.601
+anchor_bottom = 0.704
+offset_right = -0.35199
+offset_bottom = -0.192047
+script = ExtResource("1_7a1e5")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5.12
+offset_right = -5.12
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 10
+
+[node name="ColorPicker" type="ColorPicker" parent="Panel/MarginContainer/HBoxContainer/MarginContainer"]
+layout_mode = 2
+edit_alpha = false
+can_add_swatches = false
+sampler_visible = false
+presets_visible = false
+
+[node name="VSeparator" type="VSeparator" parent="Panel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Settings Container" type="VBoxContainer" parent="Panel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameContainer" type="HBoxContainer" parent="Panel/MarginContainer/HBoxContainer/Settings Container"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="Panel/MarginContainer/HBoxContainer/Settings Container/NameContainer"]
+layout_mode = 2
+text = "Name"
+
+[node name="NameEdit" type="LineEdit" parent="Panel/MarginContainer/HBoxContainer/Settings Container/NameContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/HBoxContainer/Settings Container"]
+layout_mode = 2
+
+[node name="RoughnessContainer" type="GridContainer" parent="Panel/MarginContainer/HBoxContainer/Settings Container"]
+layout_mode = 2
+columns = 3
+
+[node name="RoughnessLabel" type="Label" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+text = "Roughness"
+
+[node name="RoughnessSlider" type="HSlider" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 255.0
+
+[node name="RoughnessValueLabel" type="SpinBox" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+max_value = 255.0
+update_on_text_changed = true
+
+[node name="MetallicLabel" type="Label" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+text = "Metallic"
+
+[node name="MetallicSlider" type="HSlider" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 255.0
+
+[node name="MetallicValueLabel" type="SpinBox" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+max_value = 255.0
+update_on_text_changed = true
+
+[node name="EmissionLabel" type="Label" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+text = "Emission"
+
+[node name="EmissionSlider" type="HSlider" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 255.0
+
+[node name="EmissionValueLabel" type="SpinBox" parent="Panel/MarginContainer/HBoxContainer/Settings Container/RoughnessContainer"]
+layout_mode = 2
+max_value = 255.0
+update_on_text_changed = true
+
+[node name="PreviewContainer" type="VBoxContainer" parent="Panel/MarginContainer/HBoxContainer/Settings Container"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
+alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="Panel/MarginContainer/HBoxContainer/Settings Container/PreviewContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Panel/MarginContainer/HBoxContainer/Settings Container/PreviewContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.1
+
+[node name="SubViewport" type="SubViewport" parent="Panel/MarginContainer/HBoxContainer/Settings Container/PreviewContainer/SubViewportContainer"]
+own_world_3d = true
+world_3d = SubResource("World3D_kst4s")
+handle_input_locally = false
+size = Vector2i(256, 256)
+render_target_update_mode = 4
+
+[node name="material_demo" parent="Panel/MarginContainer/HBoxContainer/Settings Container/PreviewContainer/SubViewportContainer/SubViewport" instance=ExtResource("2_dd3co")]
