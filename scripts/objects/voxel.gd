@@ -5,10 +5,10 @@ const no_material: int = -10
 
 const _dirs = [
 	Vector3(1,0,0),
-	Vector3(0,1,0),
+	Vector3(0.1,1,0.1),
 	Vector3(0,0,1),
 	Vector3(-1,0,0),
-	Vector3(0,-1,0),
+	Vector3(0.1,-1,0.1),
 	Vector3(0,0,-1),
 ]
 
@@ -19,8 +19,12 @@ var _mesh: MeshInstance3D = MeshInstance3D.new()
 
 @onready
 var _outline: CubeOutline = CubeOutline.new()
+@onready
+var _ray: RayCast3D = RayCast3D.new()
 
 var material: int
+
+var ray_dir = _dirs.size()
 
 
 func _ready():
@@ -38,7 +42,10 @@ func _ready():
 	Materials.material_delete.connect(_delete_material)
 	get_parent().toggle_outlines.connect(_toggle_outlines)
 
-
+func _physics_process(_delta):
+	# Just maintain a list this is getting ridiculous
+	if (ray_dir < _dirs.size()):
+		ray_dir += 1
 
 func delete():
 	_update_neighbours(true)
@@ -79,6 +86,21 @@ func _update_neighbours(_visible: bool):
 		ray.target_position = dir
 		if (ray.get_collider() is Voxel):
 			ray.get_collider().visible = _visible
+	remove_child(ray)
+
+func flood_fill(material_index: int):
+	
+	var ray: RayCast3D = RayCast3D.new()
+	add_child(ray)
+	for dir in _dirs:
+		ray.target_position = dir
+		ray.exclude_parent = false
+		ray.look_at_from_position(Vector3(0,0,0), dir)
+		print(ray.get_collider())
+		if (ray.get_collider() is Voxel):
+			if (ray.get_collider().material == material):
+				ray.get_collider().flood_fill(material_index)
+	set_material(material_index)
 	remove_child(ray)
 
 func _toggle_outlines(value: bool):

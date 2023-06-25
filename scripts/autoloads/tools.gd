@@ -8,5 +8,5 @@ const WAND: int = 3
 const PENCIL: int = 4
 const ERASER: int = 5
 const BUCKET: int =  6
-
-
+const EXTRUDE: int = 7
+const EYEDROPPER: int = 8

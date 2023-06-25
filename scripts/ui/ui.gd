@@ -3,12 +3,15 @@ class_name UI
 
 signal tool_change(tool: int)
 signal toggle_outlines(value: bool)
+signal toggle_shading(value: bool)
 
 @onready
 var _light: DirectionalLight3D = $"../DirectionalLight3D"
 
 @onready
-var _environemt: WorldEnvironment = $"../WorldEnvironment"
+var _environment: WorldEnvironment = $"../WorldEnvironment"
+@onready
+var _sky: Sky = _environment.environment.sky
 
 @onready
 var _tool_list: ToolList = $HSplitContainer/ToolList
@@ -22,7 +25,8 @@ var _emission_switch: CheckButton = $MenuPanel/HBoxContainer/EmissionsEnabled
 var _shadow_switch: CheckButton = $MenuPanel/HBoxContainer/ShadowsEnabled
 @onready
 var _outline_switch: CheckButton = $MenuPanel/HBoxContainer/OutlinesEnabled
-
+@onready
+var _shading_switch: CheckButton = $MenuPanel/HBoxContainer/Shading
 @onready
 var _tool_texture: Sprite2D = $"../Tool"
 
@@ -31,6 +35,7 @@ var _add_material_button: Button = $HSplitContainer2/MaterialPanel/MaterialVBox/
 
 var _selected_material = Voxel.no_material
 
+var _shading_enabled = true
 
 var editor: MaterialEditor
 
@@ -38,12 +43,14 @@ func _ready():
 	update_materials()
 	select_material(Voxel.no_material)
 	_tool_list.tool_change.connect(_on_tool_change)
-	_emission_switch.button_pressed = _environemt.environment.glow_enabled
+	_shading_switch.button_pressed = _shading_enabled
+	_emission_switch.button_pressed = _environment.environment.glow_enabled
 	_shadow_switch.button_pressed = _light.shadow_enabled
 	_emission_switch.toggled.connect(_toggle_emissions)
 	_shadow_switch.toggled.connect(_toggle_shadows)
 	_add_material_button.button_up.connect(_add_material)
 	_outline_switch.toggled.connect(_toggle_outlines)
+	_shading_switch.toggled.connect(_toggle_shading)
 	Materials.material_delete.connect(_delete_material)
 
 func get_outlines_enabled():
@@ -97,7 +104,7 @@ func _add_material():
 	select_material(Materials.materials.size()-1)
 
 func _toggle_emissions(value: bool):
-	_environemt.environment.glow_enabled = value
+	_environment.environment.glow_enabled = value
 
 func _toggle_shadows(value: bool):
 	_light.shadow_enabled = value
@@ -117,3 +124,19 @@ func get_selected_tool_index():
 
 func _toggle_outlines(value: bool):
 	toggle_outlines.emit(value)
+
+func _toggle_shading(value: bool):
+	_shadow_switch.disabled = !value
+	_emission_switch.disabled = !value
+	if (!value):
+		_toggle_shadows(false)
+		_toggle_emissions(false)
+		_environment.environment.background_mode = Environment.BG_COLOR
+		_environment.environment.background_color = Color(0.2,0.2,0.2)
+	else:
+		_toggle_shadows(_shadow_switch.button_pressed)
+		_toggle_emissions(_emission_switch.button_pressed)
+		_environment.environment.background_mode = Environment.BG_SKY
+		_environment.environment.sky = _sky
+	toggle_shading.emit(value)
+

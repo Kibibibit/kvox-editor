@@ -12,9 +12,11 @@ var bucket: AtlasTexture = AtlasTexture.new()
 var gear: AtlasTexture = AtlasTexture.new()
 var add: AtlasTexture = AtlasTexture.new()
 var bin: AtlasTexture = AtlasTexture.new()
+var extrude: AtlasTexture = AtlasTexture.new()
+var eyedropper: AtlasTexture = AtlasTexture.new()
 
 var _mapping = [
-	place,hammer,brush,wand,pencil,eraser,bucket,gear,add,bin
+	place,hammer,brush,wand,pencil,eraser,bucket,gear,add,bin, extrude, eyedropper
 ]
 
 var _atlas = preload("res://assets/icon_sheet.png")

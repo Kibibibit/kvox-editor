@@ -48,6 +48,18 @@ var _tools = {
 		Color.BLUE,
 		KEY_G
 	),
+	Tools.EXTRUDE: Tool.new(
+		"Extrude", Icons.extrude,
+		"Extrude a voxel face",
+		Color.LIME,
+		KEY_F
+	),
+	Tools.EYEDROPPER: Tool.new(
+		"Eyedropper", Icons.eyedropper,
+		"Select a material from a voxel",
+		Color.WHITE,
+		KEY_J
+	)
 }
 
 func selected_tool_index():
@@ -73,8 +85,8 @@ func selected_tool_icon():
 
 
 func _ready():
-	custom_minimum_size = Vector2(90,0)
-	size = Vector2(90, 615.6)
+	custom_minimum_size = Vector2(130,0)
+	size = Vector2(130, 615.6)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(_list)
 	_list.focus_mode = Control.FOCUS_NONE

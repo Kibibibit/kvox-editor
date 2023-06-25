@@ -12,6 +12,11 @@ const _surrounding: Array[Vector3i] = [
 	Vector3i(-1,0,0)
 ]
 
+const _normal_tools: Array[int] = [
+	Tools.PLACE,
+	Tools.EXTRUDE
+]
+
 @onready
 var _ray: RayCast3D = $"../CameraMount/Camera3D/RayCast3D"
 
@@ -30,10 +35,11 @@ var _ui: UI = $"../UI"
 @onready
 var _tool_texture: Sprite2D = $"../Tool"
 
-
 var _size: Vector3i = Vector3i(0,0,0)
 
 var _ray_voxel: Voxel
+
+var _extruding = false
 
 func _ready():
 	_ui.toggle_outlines.connect(_toggle_outlines)
@@ -55,7 +61,7 @@ func _physics_process(_delta):
 			_ray_voxel = collider
 			_cube.position = collider.position+Vector3(0.5,0.5,0.5)
 			
-			if (_ui.get_selected_tool_index() == Tools.PLACE):
+			if (_normal_tools.has(_ui.get_selected_tool_index())):
 				_cube.position+=_ray.get_collision_normal()
 	else:
 		_cube.visible = false
@@ -69,21 +75,31 @@ func _unhandled_input(event):
 		if (_ui.editor != null):
 			return
 		if (event.pressed):
-			if (event.button_index == MOUSE_BUTTON_LEFT && _cube.visible):
-				match _ui.get_selected_tool_index():
-					Tools.PLACE:
-						add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
-					Tools.BREAK:
-						if (_ray_voxel != null):
-							remove_voxel(_ray_voxel)
-					Tools.BRUSH:
-						if (_ray_voxel != null):
-							_ray_voxel.set_material(_ui.get_selected_material())
-					Tools.ERASER:
-						if (_ray_voxel != null):
-							_ray_voxel.set_material(Voxel.no_material)
-					_:
-						return
+				
+			if (event.button_index == MOUSE_BUTTON_LEFT):
+				if (_extruding):
+					pass
+				else:
+					match _ui.get_selected_tool_index():
+						Tools.PLACE:
+							add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
+						Tools.BREAK:
+							if (_ray_voxel != null):
+								remove_voxel(_ray_voxel)
+						Tools.BRUSH:
+							if (_ray_voxel != null):
+								_ray_voxel.set_material(_ui.get_selected_material())
+						Tools.ERASER:
+							if (_ray_voxel != null):
+								_ray_voxel.set_material(Voxel.no_material)
+						Tools.EYEDROPPER:
+							if (_ray_voxel != null):
+								_ui.select_material(_ray_voxel.material)
+						Tools.BUCKET:
+							if (_ray_voxel != null):
+								_ray_voxel.flood_fill(_ui.get_selected_material())
+						_:
+							return
 			elif (event.button_index == MOUSE_BUTTON_RIGHT):
 				if (_ray_voxel != null):
 					_camera_mount.target_position = _ray_voxel.position+Vector3(0.5,0.5,0.5)
