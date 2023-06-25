@@ -1,37 +1,27 @@
 extends Control
 class_name UI
 
-signal tool_change(tool: Tools)
-
-enum Tools {
-	PLACE = 0,
-	BREAK = 1,
-	PENCIL = 2,
-	ERASER =3
-}
-
-const _tool_textures = {
-	Tools.PLACE: preload("res://assets/place_tool.png"),
-	Tools.BREAK: preload("res://assets/hammer_tool.png"),
-	Tools.PENCIL: preload("res://assets/pencil_tool.png"),
-	Tools.ERASER: preload("res://assets/eraser_tool.png")
-}
-
-const _hotkey_map = {
-	KEY_D: Tools.PLACE,
-	KEY_E: Tools.BREAK,
-	KEY_B: Tools.PENCIL,
-	KEY_C: Tools.ERASER
-}
+signal tool_change(tool: int)
+signal toggle_outlines(value: bool)
 
 @onready
-var _tool_list: ItemList = $HSplitContainer/SidebarPanel/ToolList
+var _light: DirectionalLight3D = $"../DirectionalLight3D"
+
+@onready
+var _environemt: WorldEnvironment = $"../WorldEnvironment"
+
+@onready
+var _tool_list: ToolList = $HSplitContainer/ToolList
 
 @onready
 var _material_list: VBoxContainer = $HSplitContainer2/MaterialPanel/MaterialVBox/MaterialScroll/MaterialSelectors
 
 @onready
 var _emission_switch: CheckButton = $MenuPanel/HBoxContainer/EmissionsEnabled
+@onready
+var _shadow_switch: CheckButton = $MenuPanel/HBoxContainer/ShadowsEnabled
+@onready
+var _outline_switch: CheckButton = $MenuPanel/HBoxContainer/OutlinesEnabled
 
 @onready
 var _tool_texture: Sprite2D = $"../Tool"
@@ -41,19 +31,23 @@ var _add_material_button: Button = $HSplitContainer2/MaterialPanel/MaterialVBox/
 
 var _selected_material = Voxel.no_material
 
-var selected_tool: Tools = Tools.PLACE
 
 var editor: MaterialEditor
 
 func _ready():
 	update_materials()
 	select_material(Voxel.no_material)
-	_tool_list.select(Tools.PLACE)
-	_tool_texture.texture = _tool_textures[Tools.PLACE]
-	_emission_switch.button_pressed = Materials.get_emissions_enabled()
+	_tool_list.tool_change.connect(_on_tool_change)
+	_emission_switch.button_pressed = _environemt.environment.glow_enabled
+	_shadow_switch.button_pressed = _light.shadow_enabled
 	_emission_switch.toggled.connect(_toggle_emissions)
-	_tool_list.item_selected.connect(_set_tool)
+	_shadow_switch.toggled.connect(_toggle_shadows)
 	_add_material_button.button_up.connect(_add_material)
+	_outline_switch.toggled.connect(_toggle_outlines)
+	Materials.material_delete.connect(_delete_material)
+
+func get_outlines_enabled():
+	return _outline_switch.button_pressed
 
 func update_materials():
 	if (editor != null):
@@ -63,17 +57,22 @@ func update_materials():
 		if (child is MaterialButton):
 			child.toggle.disconnect(_on_select_material)
 		_material_list.remove_child(child)
-	for i in Materials.materials.size():
+	for i in Materials.materials.keys():
 		var material_button: MaterialButton = MaterialButton.new(i,i == _selected_material)
 		_material_list.add_child(material_button)
 		material_button.toggle.connect(_on_select_material)
 
+func _delete_material(material_id: int):
+	if (_selected_material == material_id):
+		if (Materials.materials.keys().size() > 1):
+			select_material(Materials.materials.keys()[0])
+		else:
+			select_material(Voxel.no_material)
+	update_materials()
+
 func _unhandled_input(event):
 	if (event is InputEventKey):
-		if (event.pressed && _hotkey_map.has(event.keycode)):
-			_set_tool(_hotkey_map[event.keycode])
-			_tool_list.select(_hotkey_map[event.keycode])
-		elif(event.pressed && event.keycode == KEY_ESCAPE && editor != null):
+		if(event.pressed && event.keycode == KEY_ESCAPE && editor != null):
 			remove_child(editor)
 			editor = null
 
@@ -98,9 +97,23 @@ func _add_material():
 	select_material(Materials.materials.size()-1)
 
 func _toggle_emissions(value: bool):
-	Materials.set_emissions_enabled(value)
+	_environemt.environment.glow_enabled = value
 
-func _set_tool(value:int):
-	selected_tool = value as Tools
-	_tool_texture.texture = _tool_textures[value]
-	tool_change.emit(selected_tool)
+func _toggle_shadows(value: bool):
+	_light.shadow_enabled = value
+
+func _on_tool_change(index: int):
+	if (index != Tools.NONE):
+		_tool_texture.texture = _tool_list.selected_tool_icon()
+	else:
+		_tool_texture.texture = null
+	tool_change.emit(index)
+
+func get_selected_tool():
+	return _tool_list.selected_tool()
+
+func get_selected_tool_index():
+	return _tool_list.selected_tool_index()
+
+func _toggle_outlines(value: bool):
+	toggle_outlines.emit(value)

@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://eenw5ypa4gus"]
 
-[ext_resource type="Script" path="res://scripts/material_editor.gd" id="1_7a1e5"]
+[ext_resource type="Script" path="res://scripts/ui/material_editor.gd" id="1_nsyhg"]
 [ext_resource type="PackedScene" uid="uid://cao5vg8a1hwqd" path="res://scenes/material_demo.tscn" id="2_dd3co"]
 
 [sub_resource type="World3D" id="World3D_kst4s"]
@@ -12,7 +12,7 @@ anchor_right = 0.601
 anchor_bottom = 0.704
 offset_right = -0.35199
 offset_bottom = -0.192047
-script = ExtResource("1_7a1e5")
+script = ExtResource("1_nsyhg")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1

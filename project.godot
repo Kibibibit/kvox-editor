@@ -17,7 +17,9 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Materials="*res://scripts/materials.gd"
+Tools="*res://scripts/autoloads/tools.gd"
+Icons="*res://scripts/autoloads/icons.gd"
+Materials="*res://scripts/autoloads/materials.gd"
 
 [editor_plugins]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://coof4vp57txfi"
-path="res://.godot/imported/delete.png-b9a44c5efb8c430de95a545069a84d5c.ctex"
+uid="uid://ccogihtxjrl6f"
+path="res://.godot/imported/icon_sheet.png-c7ef9bec98058c6dfe7b37b03a6a5d66.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/delete.png"
-dest_files=["res://.godot/imported/delete.png-b9a44c5efb8c430de95a545069a84d5c.ctex"]
+source_file="res://assets/icon_sheet.png"
+dest_files=["res://.godot/imported/icon_sheet.png-c7ef9bec98058c6dfe7b37b03a6a5d66.ctex"]
 
 [params]
 

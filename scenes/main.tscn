@@ -1,16 +1,13 @@
-[gd_scene load_steps=15 format=3 uid="uid://cn72nbfl283w2"]
+[gd_scene load_steps=12 format=3 uid="uid://ceqt5gh4ojw3n"]
 
 [ext_resource type="PackedScene" uid="uid://dsti6evfih6ky" path="res://shaders/world_environment.tscn" id="1_k85di"]
-[ext_resource type="Script" path="res://scripts/camera_mount.gd" id="1_ptimn"]
-[ext_resource type="Texture2D" uid="uid://cv82igem7n5lm" path="res://assets/place_tool.png" id="3_18vys"]
-[ext_resource type="Script" path="res://scripts/ui.gd" id="3_gv1nq"]
-[ext_resource type="Texture2D" uid="uid://cpc0nu1evvw8g" path="res://assets/pencil_tool.png" id="3_msqwq"]
-[ext_resource type="Texture2D" uid="uid://bk8m3qqcor5fn" path="res://assets/hammer_tool.png" id="4_5nbqq"]
-[ext_resource type="Texture2D" uid="uid://c1pwctafb6awu" path="res://assets/eraser_tool.png" id="4_40ah4"]
-[ext_resource type="Script" path="res://scripts/grid.gd" id="5_cicja"]
-[ext_resource type="Script" path="res://scripts/box_model.gd" id="6_36okn"]
-[ext_resource type="Texture2D" uid="uid://cxt3dfrxik3at" path="res://assets/add_material.png" id="6_edpm7"]
-[ext_resource type="Script" path="res://scripts/cube_outline.gd" id="11_xn6vg"]
+[ext_resource type="Script" path="res://scripts/camera/camera_mount.gd" id="2_wy5n8"]
+[ext_resource type="Script" path="res://scripts/ui/ui.gd" id="3_dkdik"]
+[ext_resource type="Script" path="res://scripts/ui/add_material_button.gd" id="4_msrcu"]
+[ext_resource type="Script" path="res://scripts/ui3d/grid.gd" id="8_d4650"]
+[ext_resource type="Script" path="res://scripts/objects/voxel_highlight.gd" id="8_xu6hd"]
+[ext_resource type="Script" path="res://scripts/ui/tool_list.gd" id="9_1f607"]
+[ext_resource type="Script" path="res://scripts/objects/box_model.gd" id="9_c4lim"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3uilp"]
 size = Vector3(1000, 0.001, 1000)
@@ -29,10 +26,13 @@ albedo_color = Color(0.384314, 0.384314, 0.384314, 0.458824)
 visible = false
 position = Vector2(442, 234)
 
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.887011, 0.461749, 0, -0.461749, 0.887011, 0, 0, 0)
+shadow_enabled = true
+
 [node name="CameraMount" type="Node3D" parent="."]
 transform = Transform3D(0.707107, -0.326506, 0.627211, 0, 0.887011, 0.461749, -0.707107, -0.326506, 0.627211, 0.5, 0, 0.5)
-script = ExtResource("1_ptimn")
-inital_zoom = 25.0
+script = ExtResource("2_wy5n8")
 zoom = 25.0
 
 [node name="Camera3D" type="Camera3D" parent="CameraMount"]
@@ -40,10 +40,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 
 [node name="RayCast3D" type="RayCast3D" parent="CameraMount/Camera3D"]
 target_position = Vector3(0, 0, -30)
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CameraMount/Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
-shadow_enabled = true
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -53,7 +49,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-script = ExtResource("3_gv1nq")
+script = ExtResource("3_dkdik")
 
 [node name="MenuPanel" type="Panel" parent="UI"]
 layout_mode = 1
@@ -92,10 +88,23 @@ text = "Edit"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="ShadowsEnabled" type="CheckButton" parent="UI/MenuPanel/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Enable/Disable Shadows"
+focus_mode = 0
+text = "Shadows"
+
 [node name="EmissionsEnabled" type="CheckButton" parent="UI/MenuPanel/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Turns off enviroment glow, including emissive effects"
 focus_mode = 0
-text = "Emissions"
+text = "Glow"
+
+[node name="OutlinesEnabled" type="CheckButton" parent="UI/MenuPanel/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Disable/Enable outlines around voxels"
+focus_mode = 0
+text = "Outlines"
 
 [node name="HSplitContainer2" type="HSplitContainer" parent="UI"]
 layout_mode = 1
@@ -142,7 +151,7 @@ size_flags_vertical = 3
 layout_mode = 2
 focus_mode = 0
 text = "Add Material"
-icon = ExtResource("6_edpm7")
+script = ExtResource("4_msrcu")
 
 [node name="HSplitContainer" type="HSplitContainer" parent="UI"]
 layout_mode = 1
@@ -151,29 +160,11 @@ anchor_top = 0.05
 anchor_right = 0.5
 anchor_bottom = 1.0
 
-[node name="SidebarPanel" type="Panel" parent="UI/HSplitContainer"]
+[node name="ToolList" type="Control" parent="UI/HSplitContainer"]
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="ToolList" type="ItemList" parent="UI/HSplitContainer/SidebarPanel"]
-custom_minimum_size = Vector2(90, 0)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-focus_mode = 0
-item_count = 4
-item_0/text = "Place"
-item_0/icon = ExtResource("3_18vys")
-item_1/text = "Break"
-item_1/icon = ExtResource("4_5nbqq")
-item_2/text = "Pencil"
-item_2/icon = ExtResource("3_msqwq")
-item_3/text = "Eraser"
-item_3/icon = ExtResource("4_40ah4")
+script = ExtResource("9_1f607")
 
 [node name="Spacer" type="Control" parent="UI/HSplitContainer"]
 layout_mode = 2
@@ -183,7 +174,7 @@ mouse_filter = 1
 
 [node name="Grid" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0)
-script = ExtResource("5_cicja")
+script = ExtResource("8_d4650")
 size = 7
 color = Color(0.631373, 0.631373, 0.631373, 1)
 
@@ -194,11 +185,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.1, 0.5)
 shape = SubResource("BoxShape3D_3uilp")
 
 [node name="BoxModel" type="Node3D" parent="."]
-script = ExtResource("6_36okn")
+script = ExtResource("9_c4lim")
 
 [node name="Cube" type="MeshInstance3D" parent="BoxModel"]
 mesh = SubResource("BoxMesh_ud7jg")
 surface_material_override/0 = SubResource("StandardMaterial3D_txpyc")
 
-[node name="CubeOutline" type="MeshInstance3D" parent="BoxModel/Cube"]
-script = ExtResource("11_xn6vg")
+[node name="VoxelHighlight" type="MeshInstance3D" parent="BoxModel/Cube"]
+script = ExtResource("8_xu6hd")

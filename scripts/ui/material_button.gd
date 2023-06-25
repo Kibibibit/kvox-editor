@@ -15,11 +15,11 @@ var _edit: Button = Button.new()
 @onready
 var _delete: Button = Button.new()
 
-var _material_id: int
+var material_id: int
 var _init_select: bool
 
-func _init(material_id: int, selected:bool):
-	_material_id = material_id
+func _init(_material_id: int, selected:bool):
+	material_id = _material_id
 	_init_select = selected
 
 
@@ -29,11 +29,11 @@ func _ready():
 	_select.focus_mode = Control.FOCUS_NONE
 	_select.button_pressed = _init_select
 	
-	_edit.icon = preload("res://assets/rename.png")
+	_edit.icon = Icons.gear
 	_edit.tooltip_text = "Edit this material"
 	_edit.focus_mode = Control.FOCUS_NONE
 	
-	_delete.icon = preload("res://assets/delete.png")
+	_delete.icon = Icons.bin
 	_delete.tooltip_text = "Delete this material"
 	_delete.focus_mode = Control.FOCUS_NONE
 	
@@ -43,10 +43,11 @@ func _ready():
 	
 	_select.toggled.connect(_toggle)
 	_edit.button_up.connect(_edit_click)
+	_delete.button_up.connect(_delete_material)
 	
 	update()
 func get_material_id()->int:
-	return _material_id
+	return material_id
 
 func is_pressed()->bool:
 	return _select.button_pressed
@@ -59,7 +60,7 @@ func deselect():
 
 func _toggle(value: bool):
 	if (value):
-		toggle.emit(_material_id, value)
+		toggle.emit(material_id, value)
 	else:
 		toggle.emit(Voxel.no_material, true)
 
@@ -71,7 +72,7 @@ func _edit_click():
 	else:
 		ui.remove_child(ui.editor)
 		ui.editor.queue_free()
-		if (ui.editor.material_id != _material_id):
+		if (ui.editor.material_id != material_id):
 			_create_editor(ui)
 		else:
 			ui.editor = null
@@ -81,29 +82,29 @@ func _create_editor(ui: UI):
 	if (pos.y + ui.editor.size.y > ui.size.y):
 		pos.y -= (pos.y+ui.editor.size.y) - ui.size.y
 	ui.add_child(ui.editor)
-	ui.editor.set_material_id(_material_id)
+	ui.editor.set_material_id(material_id)
 	ui.editor.global_position = Vector2(pos)
 	ui.editor.close.connect(_edit_click)
 	ui.editor.update.connect(_update_material)
 	ui.editor.update_name.connect(_update_name)
 
 func _update_material(color:Color, roughness:int, metallic:int, emission:int):
-	Materials.update_material(_material_id, color, roughness, metallic, emission)
+	Materials.update_material(material_id, color, roughness, metallic, emission)
 	update()
 func _update_name(new_name:String):
 	if (new_name.replace(" ","").is_empty()):
 		_update_name("Material")
 		return
 	_select.text = new_name
-	Materials.material_names[_material_id] = new_name
+	Materials.material_names[material_id] = new_name
 
 func update():
-	_select.text = Materials.material_names[_material_id]
-	_select.tooltip_text = "Use material: %s" % Materials.material_names[_material_id]
+	_select.text = Materials.material_names[material_id]
+	_select.tooltip_text = "Use material: %s" % Materials.material_names[material_id]
 	var icon: Image = preload("res://assets/material_icon.png").get_image()
 	var shine: Image = preload("res://assets/material_shine.png").get_image()
 	var halo: Image = preload("res://assets/material_halo.png").get_image()
-	var mat = Materials.materials[_material_id]
+	var mat = Materials.materials[material_id]
 
 	for x in icon.get_size().x:
 		for y in icon.get_size().y:
@@ -118,3 +119,6 @@ func update():
 			icon.set_pixel(x,y, new_c)
 				
 	_select.icon = ImageTexture.create_from_image(icon)
+
+func _delete_material():
+	Materials.delete_material(material_id)
