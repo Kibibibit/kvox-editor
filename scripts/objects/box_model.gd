@@ -35,6 +35,11 @@ var _ui: UI = $"../UI"
 @onready
 var _tool_texture: Sprite2D = $"../Tool"
 
+@onready
+var _voxels: Array3D = Array3D.new(0,0,0)
+
+var _array_offset:Vector3i = Vector3i(0,0,0)
+
 var _size: Vector3i = Vector3i(0,0,0)
 
 var _ray_voxel: Voxel
@@ -71,53 +76,97 @@ func _physics_process(_delta):
 		_tool_texture.position = _camera.unproject_position(_cube.position)
 
 func _unhandled_input(event):
-	if (event is InputEventMouseButton):
+	if (event is InputEventMouseButton && !_extruding):
 		if (_ui.editor != null):
 			return
 		if (event.pressed):
 				
 			if (event.button_index == MOUSE_BUTTON_LEFT):
-				if (_extruding):
-					pass
-				else:
-					match _ui.get_selected_tool_index():
-						Tools.PLACE:
-							add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
-						Tools.BREAK:
-							if (_ray_voxel != null):
-								remove_voxel(_ray_voxel)
-						Tools.BRUSH:
-							if (_ray_voxel != null):
-								_ray_voxel.set_material(_ui.get_selected_material())
-						Tools.ERASER:
-							if (_ray_voxel != null):
-								_ray_voxel.set_material(Voxel.no_material)
-						Tools.EYEDROPPER:
-							if (_ray_voxel != null):
-								_ui.select_material(_ray_voxel.material)
-						Tools.BUCKET:
-							if (_ray_voxel != null):
-								_ray_voxel.flood_fill(_ui.get_selected_material())
-						_:
-							return
-			elif (event.button_index == MOUSE_BUTTON_RIGHT):
-				if (_ray_voxel != null):
-					_camera_mount.target_position = _ray_voxel.position+Vector3(0.5,0.5,0.5)
-				elif(_cube.visible):
-					_camera_mount.target_position = _cube.position
+				match _ui.get_selected_tool_index():
+					Tools.PLACE:
+						add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
+					Tools.BREAK:
+						if (_ray_voxel != null):
+							remove_voxel(_ray_voxel)
+					Tools.BRUSH:
+						if (_ray_voxel != null):
+							_ray_voxel.set_material(_ui.get_selected_material())
+					Tools.ERASER:
+						if (_ray_voxel != null):
+							_ray_voxel.set_material(Voxel.no_material)
+					Tools.EYEDROPPER:
+						if (_ray_voxel != null):
+							_ui.select_material(_ray_voxel.material)
+					Tools.BUCKET:
+						if (_ray_voxel != null):
+							_ray_voxel.flood_fill(_ui.get_selected_material())
+					Tools.EXTRUDE:
+						if (_ray_voxel != null):
+							_extruding = true
+					_:
+						return
+		elif (event.button_index == MOUSE_BUTTON_RIGHT):
+			if (_ray_voxel != null):
+				_camera_mount.target_position = _ray_voxel.position+Vector3(0.5,0.5,0.5)
+			elif(_cube.visible):
+				_camera_mount.target_position = _cube.position
+	else:
+		if (event is InputEventMouseMotion):
+			if (event.button_mask == MOUSE_BUTTON_MASK_LEFT):
+				print(event.position)
+			else:
+				_extruding = false
 
 func remove_voxel(voxel: Voxel):
 	if (voxel != null):
-		voxel.delete()
 		voxel.queue_free()
 		remove_child(voxel)
 		
 
 func add_voxel(pos: Vector3i,material_idx: int):
-	var new_voxel: Voxel = Voxel.new()
+	var new_voxel: Voxel = Voxel.new(pos)
+	var array_pos = pos+_array_offset
+	if (!_voxels.contains_point(array_pos)):
+		var size_increase = Vector3i(0,0,0)
+		var xy_index = 0
+		var xz_index = 0
+		var yz_index = 0
+		if (array_pos.x < 0):
+			_array_offset.x -= array_pos.x
+			size_increase.x = abs(array_pos.x)
+		elif(array_pos.x >= _voxels.width):
+			size_increase.x = (array_pos.x-_voxels.width)+1
+			yz_index = _voxels.width
+
+		if (array_pos.y < 0):
+			_array_offset.y -= array_pos.y
+			size_increase.y = abs(array_pos.y)
+		elif(array_pos.y >= _voxels.height):
+			size_increase.y = (array_pos.y-_voxels.height)+1
+			xz_index = _voxels.height
+		
+		if (array_pos.z < 0):
+			_array_offset.z -= array_pos.z
+			size_increase.z = abs(array_pos.z)
+		elif(array_pos.z >= _voxels.depth):
+			size_increase.z = (array_pos.z-_voxels.depth)+1
+			xy_index = _voxels.depth
+			
+		_voxels.insert_slice(Array3D.PLANE_YZ, yz_index, size_increase.x)
+		_voxels.insert_slice(Array3D.PLANE_XZ, xz_index, size_increase.y)
+		_voxels.insert_slice(Array3D.PLANE_XY, xy_index, size_increase.z)
+		array_pos = pos+_array_offset
+	_voxels.set_at_v(array_pos, new_voxel)
+			
 	new_voxel.position = pos
 	add_child(new_voxel)
 	new_voxel.set_material(material_idx)
+
+func get_voxel_at(pos: Vector3i):
+	if (_voxels.contains_point(pos+_array_offset)):
+		return _voxels.get_at_v(pos+_array_offset)
+	else:
+		return null
 
 func get_outlines_enabled():
 	return _ui.get_outlines_enabled()
