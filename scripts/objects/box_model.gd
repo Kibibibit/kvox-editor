@@ -3,13 +3,13 @@ class_name BoxModel
 
 signal toggle_outlines(value: bool)
 
-const _surrounding: Array[Vector3i] = [
-	Vector3i(0,0,1),
-	Vector3i(0,1,0),
-	Vector3i(1,0,0),
-	Vector3i(0,0,-1),
-	Vector3i(0,-1,0),
-	Vector3i(-1,0,0)
+const _surrounding: Array[Vector3] = [
+	Vector3(0,0,1),
+	Vector3(0,1,0),
+	Vector3(1,0,0),
+	Vector3(0,0,-1),
+	Vector3(0,-1,0),
+	Vector3(-1,0,0)
 ]
 
 const _normal_tools: Array[int] = [
@@ -40,6 +40,8 @@ var _voxels: Array3D = Array3D.new(0,0,0)
 
 var _array_offset:Vector3i = Vector3i(0,0,0)
 
+var _normal: Vector3 = Vector3(0,0,0)
+
 var _size: Vector3i = Vector3i(0,0,0)
 
 var _ray_voxel: Voxel
@@ -53,30 +55,33 @@ func get_size() -> Vector3i:
 	return _size
 
 func _physics_process(_delta):
-	if (_ray.is_colliding()):
-		var collider = _ray.get_collider()
-		_cube.visible = true
-		if (collider.get_parent() is Grid):
-			var collide_point = _ray.get_collision_point() - Vector3(0.5,0,0.5)
-			collide_point = round(collide_point) + Vector3(0.5,0,0.5)
-			collide_point.y = 0.5
-			_cube.global_position = collide_point
-			_ray_voxel = null
-		else:
-			_ray_voxel = collider
-			_cube.position = collider.position+Vector3(0.5,0.5,0.5)
+	if (!_extruding):
+		if (_ray.is_colliding()):
+			var collider = _ray.get_collider()
+			_cube.visible = true
 			
-			if (_normal_tools.has(_ui.get_selected_tool_index())):
-				_cube.position+=_ray.get_collision_normal()
-	else:
-		_cube.visible = false
-		_ray_voxel = null
+			_normal = _ray.get_collision_normal()
+			if (collider.get_parent() is Grid):
+				var collide_point = _ray.get_collision_point() - Vector3(0.5,0,0.5)
+				collide_point = round(collide_point) + Vector3(0.5,0,0.5)
+				collide_point.y = 0.5
+				_cube.global_position = collide_point
+				_ray_voxel = null
+			else:
+				_ray_voxel = collider
+				_cube.position = collider.position+Vector3(0.5,0.5,0.5)
+				
+				if (_normal_tools.has(_ui.get_selected_tool_index())):
+					_cube.position += _normal
+		else:
+			_cube.visible = false
+			_ray_voxel = null
 	_tool_texture.visible = _cube.visible
 	if (_tool_texture.visible):
 		_tool_texture.position = _camera.unproject_position(_cube.position)
 
 func _unhandled_input(event):
-	if (event is InputEventMouseButton && !_extruding):
+	if (event is InputEventMouseButton):
 		if (_ui.editor != null):
 			return
 		if (event.pressed):
@@ -102,7 +107,7 @@ func _unhandled_input(event):
 							_ray_voxel.flood_fill(_ui.get_selected_material())
 					Tools.EXTRUDE:
 						if (_ray_voxel != null):
-							_extruding = true
+							print(_get_extrude_face(_normal, [_ray_voxel.position],[]))
 					_:
 						return
 		elif (event.button_index == MOUSE_BUTTON_RIGHT):
@@ -110,15 +115,10 @@ func _unhandled_input(event):
 				_camera_mount.target_position = _ray_voxel.position+Vector3(0.5,0.5,0.5)
 			elif(_cube.visible):
 				_camera_mount.target_position = _cube.position
-	else:
-		if (event is InputEventMouseMotion):
-			if (event.button_mask == MOUSE_BUTTON_MASK_LEFT):
-				print(event.position)
-			else:
-				_extruding = false
 
 func remove_voxel(voxel: Voxel):
 	if (voxel != null):
+		_voxels.set_at_v(voxel.grid_pos+_array_offset, null)
 		voxel.queue_free()
 		remove_child(voxel)
 		
@@ -126,6 +126,7 @@ func remove_voxel(voxel: Voxel):
 func add_voxel(pos: Vector3i,material_idx: int):
 	var new_voxel: Voxel = Voxel.new(pos)
 	var array_pos = pos+_array_offset
+	
 	if (!_voxels.contains_point(array_pos)):
 		var size_increase = Vector3i(0,0,0)
 		var xy_index = 0
@@ -156,6 +157,8 @@ func add_voxel(pos: Vector3i,material_idx: int):
 		_voxels.insert_slice(Array3D.PLANE_XZ, xz_index, size_increase.y)
 		_voxels.insert_slice(Array3D.PLANE_XY, xy_index, size_increase.z)
 		array_pos = pos+_array_offset
+	elif (_voxels.get_at_v(array_pos) != null):
+		return
 	_voxels.set_at_v(array_pos, new_voxel)
 			
 	new_voxel.position = pos
@@ -173,3 +176,35 @@ func get_outlines_enabled():
 
 func _toggle_outlines(value: bool):
 	toggle_outlines.emit(value)
+
+func _get_extrude_face(normal:Vector3, visited: Array[Vector3], output: Array[Vector3], material_index: int = 0):
+	
+	if (visited.is_empty()):
+		return output
+	var base_pos = visited.pop_back()
+	if (output.is_empty()):
+		material_index = _voxels.get_at_v(Vector3i(base_pos)+_array_offset).material
+	output.append(base_pos)
+	var inverse_normal = Vector3(1,1,1)-normal
+	for dir in _surrounding:
+		if ((dir*inverse_normal).length() > 0):
+			var n_pos = base_pos+dir
+			if (output.has(n_pos) || visited.has(n_pos)):
+				continue
+
+			var array_point = _array_offset + Vector3i(n_pos)
+			if (_voxels.contains_point(array_point)):
+				if (_voxels.get_at_v(array_point) == null):
+					continue
+				else:
+					if (_voxels.get_at_v(array_point).material != material_index):
+						continue
+				var normal_point = array_point+Vector3i(normal)
+				var can_add = true
+				if (_voxels.contains_point(normal_point)):
+					can_add = _voxels.get_at_v(normal_point) == null
+				if (can_add):
+					visited.append(n_pos)
+
+
+	return _get_extrude_face( normal, visited, output, material_index)

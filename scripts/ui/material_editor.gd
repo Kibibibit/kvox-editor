@@ -53,6 +53,9 @@ func set_material_id(mat_id: int):
 	_name.text = mat_name
 	_update()
 
+func _enter_tree():
+	size = Vector2(692,456)
+
 func _ready():
 	_color_picker.color = _color
 	_color_picker.color_changed.connect(_update_color)

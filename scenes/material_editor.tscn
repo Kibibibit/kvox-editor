@@ -8,10 +8,7 @@
 [node name="material_editor" type="Control"]
 custom_minimum_size = Vector2(692, 456)
 layout_mode = 3
-anchor_right = 0.601
-anchor_bottom = 0.704
-offset_right = -0.35199
-offset_bottom = -0.192047
+anchors_preset = 0
 script = ExtResource("1_nsyhg")
 
 [node name="Panel" type="Panel" parent="."]

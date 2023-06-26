@@ -198,3 +198,5 @@ surface_material_override/0 = SubResource("StandardMaterial3D_txpyc")
 
 [node name="VoxelHighlight" type="MeshInstance3D" parent="BoxModel/Cube"]
 script = ExtResource("8_xu6hd")
+
+[node name="ExtrudeBox" type="MeshInstance3D" parent="BoxModel"]
