@@ -46,8 +46,6 @@ var _size: Vector3i = Vector3i(0,0,0)
 
 var _ray_voxel: Voxel
 
-var _extruding = false
-
 func _ready():
 	_ui.toggle_outlines.connect(_toggle_outlines)
 
@@ -55,27 +53,26 @@ func get_size() -> Vector3i:
 	return _size
 
 func _physics_process(_delta):
-	if (!_extruding):
-		if (_ray.is_colliding()):
-			var collider = _ray.get_collider()
-			_cube.visible = true
-			
-			_normal = _ray.get_collision_normal()
-			if (collider.get_parent() is Grid):
-				var collide_point = _ray.get_collision_point() - Vector3(0.5,0,0.5)
-				collide_point = round(collide_point) + Vector3(0.5,0,0.5)
-				collide_point.y = 0.5
-				_cube.global_position = collide_point
-				_ray_voxel = null
-			else:
-				_ray_voxel = collider
-				_cube.position = collider.position+Vector3(0.5,0.5,0.5)
-				
-				if (_normal_tools.has(_ui.get_selected_tool_index())):
-					_cube.position += _normal
-		else:
-			_cube.visible = false
+	if (_ray.is_colliding()):
+		var collider = _ray.get_collider()
+		_cube.visible = true
+		
+		_normal = _ray.get_collision_normal()
+		if (collider.get_parent() is Grid):
+			var collide_point = _ray.get_collision_point() - Vector3(0.5,0,0.5)
+			collide_point = round(collide_point) + Vector3(0.5,0,0.5)
+			collide_point.y = 0.5
+			_cube.global_position = collide_point
 			_ray_voxel = null
+		else:
+			_ray_voxel = collider
+			_cube.position = collider.position+Vector3(0.5,0.5,0.5)
+			
+			if (_normal_tools.has(_ui.get_selected_tool_index())):
+				_cube.position += _normal
+	else:
+		_cube.visible = false
+		_ray_voxel = null
 	_tool_texture.visible = _cube.visible
 	if (_tool_texture.visible):
 		_tool_texture.position = _camera.unproject_position(_cube.position)
@@ -85,43 +82,26 @@ func _unhandled_input(event):
 		if (_ui.editor != null):
 			return
 		if (event.pressed):
-				
-			if (event.button_index == MOUSE_BUTTON_LEFT):
-				match _ui.get_selected_tool_index():
-					Tools.PLACE:
-						add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
-					Tools.BREAK:
-						if (_ray_voxel != null):
-							remove_voxel(_ray_voxel)
-					Tools.BRUSH:
-						if (_ray_voxel != null):
-							_ray_voxel.set_material(_ui.get_selected_material())
-					Tools.ERASER:
-						if (_ray_voxel != null):
-							_ray_voxel.set_material(Voxel.no_material)
-					Tools.EYEDROPPER:
-						if (_ray_voxel != null):
-							_ui.select_material(_ray_voxel.material)
-					Tools.BUCKET:
-						if (_ray_voxel != null):
-							_ray_voxel.flood_fill(_ui.get_selected_material())
-					Tools.EXTRUDE:
-						if (_ray_voxel != null):
-							print(_get_extrude_face(_normal, [_ray_voxel.position],[]))
-					_:
-						return
-		elif (event.button_index == MOUSE_BUTTON_RIGHT):
-			if (_ray_voxel != null):
-				_camera_mount.target_position = _ray_voxel.position+Vector3(0.5,0.5,0.5)
-			elif(_cube.visible):
-				_camera_mount.target_position = _cube.position
+			if (event.button_index == MOUSE_BUTTON_RIGHT && event.shift_pressed):
+				if (_ray_voxel != null):
+					_camera_mount.target_position = _ray_voxel.position+Vector3(0.5,0.5,0.5)
+				elif(_cube.visible):
+					_camera_mount.target_position = _cube.position
+			elif (event.button_index == MOUSE_BUTTON_LEFT && event.alt_pressed):
+				_eyedropper_tool()
+			else:
+				_use_tool(event)
 
 func remove_voxel(voxel: Voxel):
 	if (voxel != null):
 		_voxels.set_at_v(voxel.grid_pos+_array_offset, null)
 		voxel.queue_free()
 		remove_child(voxel)
-		
+
+func remove_voxel_at(pos: Vector3i):
+	var voxel: Voxel = _voxels.get_at_v(pos+_array_offset)
+	if (voxel != null):
+		remove_voxel(voxel)
 
 func add_voxel(pos: Vector3i,material_idx: int):
 	var new_voxel: Voxel = Voxel.new(pos)
@@ -208,3 +188,64 @@ func _get_extrude_face(normal:Vector3, visited: Array[Vector3], output: Array[Ve
 
 
 	return _get_extrude_face( normal, visited, output, material_index)
+
+func _use_tool(event: InputEventMouseButton):
+	match _ui.get_selected_tool_index():
+		Tools.PLACE:
+			_place_tool(event.button_index)
+		Tools.BREAK:
+			_break_tool()
+		Tools.BRUSH:
+			_brush_tool(event.button_index)
+		Tools.ERASER:
+			_eraser_tool()
+		Tools.EYEDROPPER:
+			_eyedropper_tool()
+		Tools.BUCKET:
+			_bucket_tool(event.button_index)
+		Tools.EXTRUDE:
+			_extrude_tool(event.button_index)
+		_:
+			return
+
+func _place_tool(mouse_button: int):
+	if (mouse_button == MOUSE_BUTTON_LEFT):
+		add_voxel(_cube.position-Vector3(0.5,0.5,0.5), _ui.get_selected_material())
+	elif (mouse_button == MOUSE_BUTTON_RIGHT):
+		_break_tool()
+
+func _break_tool():
+	if (_ray_voxel != null):
+		remove_voxel(_ray_voxel)
+
+func _brush_tool(mouse_button: int):
+	if (_ray_voxel != null):
+		if (mouse_button == MOUSE_BUTTON_LEFT):
+			_ray_voxel.set_material(_ui.get_selected_material())
+		elif(mouse_button == MOUSE_BUTTON_RIGHT):
+			_eraser_tool()
+
+func _eraser_tool():
+	if (_ray_voxel != null):
+		_ray_voxel.set_material(Voxel.no_material)
+
+func _eyedropper_tool():
+	if (_ray_voxel != null):
+		_ui.select_material(_ray_voxel.material)
+
+func _bucket_tool(mouse_button: int):
+	if (_ray_voxel != null):
+		if (mouse_button == MOUSE_BUTTON_LEFT):
+			_ray_voxel.flood_fill(_ui.get_selected_material())
+		elif (mouse_button == MOUSE_BUTTON_RIGHT):
+			_ray_voxel.flood_fill(Voxel.no_material)
+
+func _extrude_tool(mouse_button:int):
+	if (_ray_voxel != null):
+		if (mouse_button == MOUSE_BUTTON_LEFT || mouse_button == MOUSE_BUTTON_RIGHT):
+			var faces = _get_extrude_face(_normal, [_ray_voxel.position],[])
+			for f in faces:
+				if (mouse_button == MOUSE_BUTTON_LEFT):
+					add_voxel(f+_normal, _ray_voxel.material)
+				elif (mouse_button == MOUSE_BUTTON_RIGHT):
+					remove_voxel_at(f)

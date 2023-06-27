@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://ceqt5gh4ojw3n"]
+[gd_scene load_steps=12 format=3 uid="uid://ceqt5gh4ojw3n"]
 
 [ext_resource type="PackedScene" uid="uid://dsti6evfih6ky" path="res://shaders/world_environment.tscn" id="1_k85di"]
 [ext_resource type="Script" path="res://scripts/camera/camera_mount.gd" id="2_wy5n8"]
@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://scripts/objects/voxel_highlight.gd" id="8_xu6hd"]
 [ext_resource type="Script" path="res://scripts/ui/tool_list.gd" id="9_1f607"]
 [ext_resource type="Script" path="res://scripts/objects/box_model.gd" id="9_c4lim"]
-[ext_resource type="Script" path="res://scripts/ui3d/extrude_box.gd" id="9_hgcb1"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_3uilp"]
 size = Vector3(1000, 0.001, 1000)
@@ -40,7 +39,7 @@ zoom = 25.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 
 [node name="RayCast3D" type="RayCast3D" parent="CameraMount/Camera3D"]
-target_position = Vector3(0, 0, -30)
+target_position = Vector3(0, 0, -1000)
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -199,6 +198,3 @@ surface_material_override/0 = SubResource("StandardMaterial3D_txpyc")
 
 [node name="VoxelHighlight" type="MeshInstance3D" parent="BoxModel/Cube"]
 script = ExtResource("8_xu6hd")
-
-[node name="ExtrudeBox" type="MeshInstance3D" parent="BoxModel"]
-script = ExtResource("9_hgcb1")

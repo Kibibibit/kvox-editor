@@ -6,61 +6,6 @@ signal tool_change(tool_code: int)
 @onready
 var _list: ItemList = ItemList.new()
 
-@onready
-var _tools = {
-	Tools.PLACE: Tool.new(
-		"Place", Icons.place,
-		"Place new voxels",
-		Color.GREEN,
-		KEY_D
-	),
-	Tools.BREAK: Tool.new(
-		"Break", Icons.hammer,
-		"Break voxels",
-		Color.RED,
-		KEY_E
-	),
-	Tools.BRUSH: Tool.new(
-		"Brush", Icons.brush,
-		"Recolour voxels",
-		Color.WHITE,
-		KEY_B
-	),
-	Tools.WAND: Tool.new(
-		"Wand", Icons.wand,
-		"Unimplemented!",
-		Color.PINK,
-		KEY_W
-	),
-	Tools.PENCIL: Tool.new(
-		"Pencil", Icons.pencil,
-		"Unimplemented!"
-	),
-	Tools.ERASER: Tool.new(
-		"Eraser", Icons.eraser,
-		"Remove material from voxels",
-		Color.DEEP_PINK,
-		KEY_C
-	),
-	Tools.BUCKET: Tool.new(
-		"Bucket", Icons.bucket,
-		"Recolour adjacent voxels",
-		Color.BLUE,
-		KEY_G
-	),
-	Tools.EXTRUDE: Tool.new(
-		"Extrude", Icons.extrude,
-		"Extrude a voxel face",
-		Color.LIME,
-		KEY_F
-	),
-	Tools.EYEDROPPER: Tool.new(
-		"Eyedropper", Icons.eyedropper,
-		"Select a material from a voxel",
-		Color.WHITE,
-		KEY_J
-	)
-}
 
 func selected_tool_index():
 	if (!_list.get_selected_items().is_empty()):
@@ -71,7 +16,7 @@ func selected_tool_index():
 func selected_tool():
 	var index = selected_tool_index()
 	if (index != Tools.NONE):
-		return _tools[index]
+		return Tools.get_tool(index)
 	else:
 		return null
 
@@ -96,8 +41,8 @@ func _ready():
 	_list.anchor_left = 0
 	_list.anchor_right = 1
 
-	for tool_key in _tools.keys():
-		var tool: Tool = _tools[tool_key]
+	for tool_key in Tools.get_tools():
+		var tool: Tool = Tools.get_tool(tool_key)
 		_list.add_item(tool.name, tool.icon)
 		_list.set_item_tooltip(tool_key, tool.tooltip_text)
 	_list.item_clicked.connect(_on_select)
@@ -114,8 +59,8 @@ func _on_select(index: int, _at: Vector2, button_index: int):
 func _unhandled_input(event):
 	if (event is InputEventKey):
 		if (event.pressed):
-			for tool_key in _tools.keys():
-				var tool: Tool = _tools[tool_key]
+			for tool_key in Tools.get_tools():
+				var tool: Tool = Tools.get_tool(tool_key)
 				if (event.keycode == tool.key_code):
 					if (
 						event.is_command_or_control_pressed() == tool.control_pressed &&

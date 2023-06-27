@@ -82,6 +82,14 @@ func _unhandled_input(event):
 		if(event.pressed && event.keycode == KEY_ESCAPE && editor != null):
 			remove_child(editor)
 			editor = null
+		elif(event.keycode == KEY_ALT):
+			if (event.pressed):
+				_tool_texture.texture = Tools.get_tool(Tools.EYEDROPPER).icon
+			else:
+				if (get_selected_tool_index() != Tools.NONE):
+					_tool_texture.texture = get_selected_tool().icon
+				else:
+					_tool_texture.texture = null
 
 func _on_select_material(material_id: int, value: bool):
 	if (value):
