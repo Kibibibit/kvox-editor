@@ -1,6 +1,8 @@
 extends Node3D
 class_name BoxModel
 
+const version = 1
+
 signal toggle_outlines(value: bool)
 
 const _surrounding: Array[Vector3] = [
@@ -249,3 +251,121 @@ func _extrude_tool(mouse_button:int):
 					add_voxel(f+_normal, _ray_voxel.material)
 				elif (mouse_button == MOUSE_BUTTON_RIGHT):
 					remove_voxel_at(f)
+
+func save_model(path: String):
+	
+	var width = _voxels.width
+	var height = _voxels.height
+	var depth = _voxels.depth
+	var color_depth = Materials.materials.size()
+	
+	var orderings = [0b00000110, 0b00100001, 0b00100100, 0b00001001, 0b00010010, 0b00011000]
+	
+	var data_layout = 0
+	var compressed = false
+	var voxel_data = _gen_voxels(0b00000110, width, height, depth)
+	var smallest_size = voxel_data.size()
+	
+	for o in orderings:
+		var d = _rle(_gen_voxels(o, width,height,depth))
+		if (d.size() < smallest_size):
+			smallest_size = d.size()
+			voxel_data = d
+			data_layout = o
+			compressed = true
+	if compressed:
+		data_layout += 0b10000000
+	
+	var output: Array[int] = VoxelMesh.header
+	var meta_chunk = [version]
+	meta_chunk.append_array(_encode_16(width))
+	meta_chunk.append_array(_encode_16(height))
+	meta_chunk.append_array(_encode_16(depth))
+	meta_chunk.append(color_depth)
+	meta_chunk.append(data_layout)
+	output.append_array(_make_chunk(
+		VoxelMesh.meta_chunk_header,
+		meta_chunk
+	))
+	
+	# Generate materials
+	
+	output.append_array(_make_chunk(
+		VoxelMesh.voxel_chunk_header,
+		voxel_data
+	))
+	
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	
+	if (file == null):
+		return FileAccess.get_open_error()
+	
+	for byte in output:
+		file.store_8(byte)
+	file.flush()
+	file.close()
+
+func _encode_16(value: int) -> Array[int]:
+	return [
+		(value & 0x00FF),
+		(value & 0xFF00) >> 8
+	]
+
+
+func _make_chunk(chunk_header: Array[int], data: Array[int]) -> Array[int]:
+	var out = VoxelMesh.chunk_header
+	out.append_array(chunk_header)
+	out.append_array(data)
+	out.append_array(VoxelMesh.chunk_end)
+	return out
+
+func _get_dim_from_flag(a:int, b:int, c:int, a_flag:int, b_flag:int,c_flag:int, dim_flag:int):
+	match dim_flag:
+		a_flag:
+			return a
+		b_flag:
+			return b
+		c_flag:
+			return c
+		_:
+			return 0
+
+func _get_pos(a:int,b:int,c:int,a_flag:int,b_flag:int,c_flag:int):
+	var x = _get_dim_from_flag(a,b,c,a_flag,b_flag,c_flag,VoxelMesh.x_flag)
+	var y = _get_dim_from_flag(a,b,c,a_flag,b_flag,c_flag,VoxelMesh.y_flag)
+	var z = _get_dim_from_flag(a,b,c,a_flag,b_flag,c_flag,VoxelMesh.z_flag)
+	return Vector3i(x,y,z)
+
+func _gen_voxels(order:int, width:int, height:int, depth:int) -> Array[int]:
+	var a_flag = (order & 0b00110000) >> 4
+	var b_flag = (order & 0b00001100) >> 2
+	var c_flag = (order & 0b00000011)
+	var ordering = {
+		VoxelMesh.x_flag: width,
+		VoxelMesh.y_flag: height,
+		VoxelMesh.z_flag: depth,
+	}
+	
+	var out: Array[int] = []
+	
+	for a in ordering[a_flag]:
+		for b in ordering[b_flag]:
+			for c in ordering[c_flag]:
+				var pos = _get_pos(a,b,c,a_flag,b_flag,c_flag)
+				out.append(_voxels.get_at_v(pos))
+	return out
+
+func _rle(input: Array[int]) -> Array[int]:
+	var output:Array[int] = []
+	var current_value: int = -1
+	var count: int = 0
+	for value in input:
+		if ((current_value != value || count >= 255) && current_value != -1):
+			output.append(count)
+			output.append(current_value)
+			count = 0
+		count += 1
+		current_value = value
+	output.append(count)
+	output.append(current_value)
+	return output
